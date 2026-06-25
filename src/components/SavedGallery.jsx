@@ -1,3 +1,5 @@
+import React from 'react';
+
 export default function SavedGallery({ savedItems, onRestore, onClear }) {
   return (
     <aside className="panel gallery-panel">

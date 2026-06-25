@@ -1,3 +1,4 @@
+import React from 'react';
 import { DNA_LIMITS, PARAM_LABELS } from '../generators/mutateDNA.js';
 
 export default function Controls({

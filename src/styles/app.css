@@ -197,8 +197,67 @@ input[type="range"] {
 }
 
 .viewport {
+  position: relative;
+  z-index: 1;
   width: 100%;
   height: 100vh;
+}
+
+.viewport-loading,
+.viewport-message,
+.viewport-diagnostics {
+  position: absolute;
+  z-index: 3;
+  border: 1px solid #2b2d34;
+  border-radius: 7px;
+  background: rgba(9, 9, 12, 0.78);
+  color: #dfe2ea;
+}
+
+.viewport-loading {
+  left: 22px;
+  bottom: 22px;
+  padding: 9px 11px;
+  color: #8e939e;
+  font-size: 0.78rem;
+}
+
+.viewport:has(canvas) + .viewport-loading {
+  display: none;
+}
+
+.viewport-diagnostics {
+  right: 22px;
+  bottom: 22px;
+  display: grid;
+  gap: 4px;
+  padding: 9px 11px;
+  font-size: 0.75rem;
+  pointer-events: none;
+}
+
+.viewport-diagnostics strong {
+  color: #ff9c9c;
+  font-weight: 600;
+}
+
+.viewport-message {
+  top: 50%;
+  left: 50%;
+  display: grid;
+  gap: 8px;
+  width: min(420px, calc(100% - 44px));
+  padding: 18px;
+  transform: translate(-50%, -50%);
+}
+
+.viewport-message strong {
+  font-size: 1rem;
+}
+
+.viewport-message span {
+  color: #aeb3bd;
+  line-height: 1.45;
 }
 
 .clear-button {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Viewport from './Viewport.jsx';
 import Controls from './Controls.jsx';
 import SavedGallery from './SavedGallery.jsx';
@@ -42,6 +42,39 @@ function loadSavedVariations() {
   }
 }
 
+class AppErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { error };
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <section className="viewport-shell viewport-failed">
+          <div className="viewport-header">
+            <div>
+              <p>Organic Engine</p>
+              <h1>Viewport failed to initialize</h1>
+            </div>
+            <span>Runtime error</span>
+          </div>
+          <div className="viewport-message">
+            <strong>3D viewport error</strong>
+            <span>{this.state.error.message}</span>
+          </div>
+        </section>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 export default function App() {
   const [dna, setDNA] = useState(DEFAULT_DNA);
   const [savedItems, setSavedItems] = useState(loadSavedVariations);
@@ -82,7 +115,9 @@ export default function App() {
         onCopy={handleCopy}
         copyStatus={copyStatus}
       />
-      <Viewport dna={dna} />
+      <AppErrorBoundary>
+        <Viewport dna={dna} />
+      </AppErrorBoundary>
       <SavedGallery
         savedItems={savedItems}
         onRestore={(item) => setDNA(sanitizeDNA(item))}
