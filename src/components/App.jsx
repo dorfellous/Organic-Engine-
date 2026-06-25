@@ -42,6 +42,7 @@ function loadSavedVariations() {
   }
 }
 
+// Keep viewport failures visible instead of leaving the page as an empty root.
 class AppErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
