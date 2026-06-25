@@ -1,6 +1,14 @@
 import React from 'react';
 
 export default function SavedGallery({ savedItems, onRestore, onClear }) {
+  function summarizePrompt(prompt) {
+    if (!prompt) {
+      return 'No prompt saved';
+    }
+
+    return prompt.length > 58 ? `${prompt.slice(0, 58)}...` : prompt;
+  }
+
   return (
     <aside className="panel gallery-panel">
       <div className="panel-header">
@@ -29,6 +37,11 @@ export default function SavedGallery({ savedItems, onRestore, onClear }) {
               <span>{item.segments} segments</span>
               <span>
                 spikes {item.spikeDensity} / gloss {item.wetness}
+              </span>
+              <span className="saved-prompt">{summarizePrompt(item.prompt)}</span>
+              <span className="saved-meta">
+                <i style={{ backgroundColor: item.materialColor || '#050505' }} />
+                {item.quality || 'medium'} quality
               </span>
             </button>
           ))

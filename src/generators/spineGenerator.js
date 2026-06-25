@@ -1,6 +1,38 @@
 import * as THREE from 'three';
 import { createSeededRandom, randomBetween, randomSign } from './seededRandom.js';
+import { applyPromptDirection } from './mutateDNA.js';
 import { createWetBlackMaterial } from '../materials/wetBlackMaterial.js';
+
+const QUALITY_SETTINGS = {
+  low: {
+    sphereWidth: 22,
+    sphereHeight: 14,
+    spikePath: 10,
+    spikeRadial: 9,
+    ribPath: 10,
+    ribRadial: 8,
+  },
+  medium: {
+    sphereWidth: 34,
+    sphereHeight: 20,
+    spikePath: 16,
+    spikeRadial: 12,
+    ribPath: 16,
+    ribRadial: 10,
+  },
+  high: {
+    sphereWidth: 44,
+    sphereHeight: 26,
+    spikePath: 22,
+    spikeRadial: 16,
+    ribPath: 22,
+    ribRadial: 12,
+  },
+};
+
+function getQualitySettings(quality) {
+  return QUALITY_SETTINGS[quality] || QUALITY_SETTINGS.medium;
+}
 
 function makePathPoint(index, count, dna, random) {
   const progress = count <= 1 ? 0 : index / (count - 1);
@@ -39,10 +71,14 @@ function deformGeometry(geometry, random, dna, segmentIndex) {
   geometry.computeVertexNormals();
 }
 
-function createVertebra(random, dna, index, total) {
+function createVertebra(random, dna, index, total, quality) {
   const radius = dna.vertebraSize * randomBetween(random, 0.72, 1.22);
   const depth = randomBetween(random, 0.58, 1.08) * (1 + dna.complexity * 0.3);
-  const geometry = new THREE.SphereGeometry(radius, 18 + Math.round(dna.complexity * 14), 12);
+  const geometry = new THREE.SphereGeometry(
+    radius,
+    quality.sphereWidth + Math.round(dna.complexity * 8),
+    quality.sphereHeight,
+  );
 
   geometry.scale(
     randomBetween(random, 0.58, 1.2) * (1 + dna.asymmetry * 0.32),
@@ -57,7 +93,7 @@ function createVertebra(random, dna, index, total) {
   return mesh;
 }
 
-function createSpike(random, dna, segmentRadius) {
+function createSpike(random, dna, segmentRadius, quality) {
   const length = randomBetween(random, 0.35, 1.8) * dna.spikeLength * (0.75 + dna.complexity);
   const base = randomBetween(random, 0.04, 0.12) * (1 + dna.vertebraSize);
   const curve = randomBetween(random, 0.06, 0.34) * (1 + dna.organicDistortion);
@@ -67,7 +103,7 @@ function createSpike(random, dna, segmentRadius) {
     new THREE.Vector3(curve * randomSign(random) * 0.6, length, curve * randomSign(random) * 0.6),
   ];
   const path = new THREE.CatmullRomCurve3(points);
-  const geometry = new THREE.TubeGeometry(path, 8, base, 7, false);
+  const geometry = new THREE.TubeGeometry(path, quality.spikePath, base, quality.spikeRadial, false);
 
   for (let index = 0; index < geometry.attributes.position.count; index += 1) {
     const y = geometry.attributes.position.getY(index);
@@ -93,31 +129,33 @@ function createSpike(random, dna, segmentRadius) {
 }
 
 export function generateAlienSpine(dna) {
-  const random = createSeededRandom(`${dna.seed}:${JSON.stringify(dna)}`);
+  const effectiveDNA = applyPromptDirection(dna);
+  const random = createSeededRandom(`${effectiveDNA.seed}:${JSON.stringify(effectiveDNA)}`);
   const group = new THREE.Group();
-  const material = createWetBlackMaterial(dna.wetness);
-  const points = Array.from({ length: dna.segments }, (_, index) =>
-    makePathPoint(index, dna.segments, dna, random),
+  const quality = getQualitySettings(effectiveDNA.quality);
+  const material = createWetBlackMaterial(effectiveDNA.wetness, effectiveDNA.materialColor);
+  const points = Array.from({ length: effectiveDNA.segments }, (_, index) =>
+    makePathPoint(index, effectiveDNA.segments, effectiveDNA, random),
   );
 
   points.forEach((point, index) => {
-    const vertebra = createVertebra(random, dna, index, dna.segments);
+    const vertebra = createVertebra(random, effectiveDNA, index, effectiveDNA.segments, quality);
     const next = points[Math.min(index + 1, points.length - 1)];
     const previous = points[Math.max(index - 1, 0)];
     const tangent = next.clone().sub(previous).normalize();
-    const twistAngle = index * dna.twist * 0.75 + randomBetween(random, -0.45, 0.45);
-    const segmentRadius = dna.vertebraSize * randomBetween(random, 0.85, 1.35);
+    const twistAngle = index * effectiveDNA.twist * 0.75 + randomBetween(random, -0.45, 0.45);
+    const segmentRadius = effectiveDNA.vertebraSize * randomBetween(random, 0.85, 1.35);
 
     vertebra.material = material;
     vertebra.position.copy(point);
     vertebra.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), tangent);
     vertebra.rotateX(twistAngle);
-    vertebra.rotateY(randomBetween(random, -dna.asymmetry, dna.asymmetry) * 0.75);
-    vertebra.rotateZ(randomBetween(random, -dna.asymmetry, dna.asymmetry) * 0.55);
+    vertebra.rotateY(randomBetween(random, -effectiveDNA.asymmetry, effectiveDNA.asymmetry) * 0.75);
+    vertebra.rotateZ(randomBetween(random, -effectiveDNA.asymmetry, effectiveDNA.asymmetry) * 0.55);
 
-    const spikeCount = Math.round(dna.spikeDensity * randomBetween(random, 1, 5 + dna.complexity * 7));
+    const spikeCount = Math.round(effectiveDNA.spikeDensity * randomBetween(random, 1, 5 + effectiveDNA.complexity * 7));
     for (let spikeIndex = 0; spikeIndex < spikeCount; spikeIndex += 1) {
-      const spike = createSpike(random, dna, segmentRadius);
+      const spike = createSpike(random, effectiveDNA, segmentRadius, quality);
       spike.material = material;
       vertebra.add(spike);
     }
@@ -126,7 +164,7 @@ export function generateAlienSpine(dna) {
   });
 
   const ribMaterial = material.clone();
-  ribMaterial.color = new THREE.Color(0x050506);
+  ribMaterial.color = new THREE.Color(effectiveDNA.materialColor).multiplyScalar(0.75);
 
   for (let index = 0; index < points.length - 1; index += 1) {
     const start = points[index];
@@ -136,7 +174,13 @@ export function generateAlienSpine(dna) {
       start.clone().lerp(end, 0.42).add(new THREE.Vector3(0, randomBetween(random, -0.35, 0.35), randomBetween(random, -0.35, 0.35))),
       end,
     ]);
-    const tube = new THREE.TubeGeometry(curve, 8, 0.055 + dna.complexity * 0.035, 8, false);
+    const tube = new THREE.TubeGeometry(
+      curve,
+      quality.ribPath,
+      0.055 + effectiveDNA.complexity * 0.035,
+      quality.ribRadial,
+      false,
+    );
     const mesh = new THREE.Mesh(tube, ribMaterial);
     group.add(mesh);
   }

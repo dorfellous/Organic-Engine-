@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 
-export function createWetBlackMaterial(wetness = 0.8) {
+export function createWetBlackMaterial(wetness = 0.8, materialColor = '#050505') {
   return new THREE.MeshPhysicalMaterial({
-    color: new THREE.Color(0x010101),
+    color: new THREE.Color(materialColor),
     roughness: Math.max(0.05, 0.34 - wetness * 0.25),
     metalness: 0.18,
     clearcoat: 0.75 + wetness * 0.25,

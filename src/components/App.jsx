@@ -6,6 +6,8 @@ import {
   DEFAULT_DNA,
   createRandomDNA,
   mutateDNA,
+  getDNAWithDefaults,
+  updateDNAField,
   updateDNAValue,
 } from '../generators/mutateDNA.js';
 
@@ -22,15 +24,20 @@ const DNA_KEYS = [
   'complexity',
   'vertebraSize',
   'organicDistortion',
+  'materialColor',
+  'prompt',
+  'quality',
 ];
 
 function sanitizeDNA(source) {
-  return DNA_KEYS.reduce(
-    (nextDNA, key) => ({
-      ...nextDNA,
-      [key]: source[key] ?? DEFAULT_DNA[key],
-    }),
-    {},
+  return getDNAWithDefaults(
+    DNA_KEYS.reduce(
+      (nextDNA, key) => ({
+        ...nextDNA,
+        [key]: source[key] ?? DEFAULT_DNA[key],
+      }),
+      {},
+    ),
   );
 }
 
@@ -91,6 +98,10 @@ export default function App() {
     setDNA((currentDNA) => updateDNAValue(currentDNA, key, value));
   }
 
+  function handleFieldChange(key, value) {
+    setDNA((currentDNA) => updateDNAField(currentDNA, key, value));
+  }
+
   function handleSave() {
     setSavedItems((items) => [
       { ...dna, savedAt: new Date().toISOString() },
@@ -109,6 +120,7 @@ export default function App() {
       <Controls
         dna={dna}
         onChange={handleChange}
+        onFieldChange={handleFieldChange}
         onGenerateNew={() => setDNA(createRandomDNA())}
         onMutateSoft={() => setDNA((currentDNA) => mutateDNA(currentDNA, 0.08))}
         onMutateHard={() => setDNA((currentDNA) => mutateDNA(currentDNA, 0.24))}

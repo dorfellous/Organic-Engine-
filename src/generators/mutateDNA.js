@@ -12,6 +12,9 @@ export const DEFAULT_DNA = {
   complexity: 0.58,
   vertebraSize: 0.62,
   organicDistortion: 0.68,
+  materialColor: '#050505',
+  prompt: 'spiky wet black alien spine, wearable product object, creature-like',
+  quality: 'high',
 };
 
 export const DNA_LIMITS = {
@@ -26,6 +29,8 @@ export const DNA_LIMITS = {
   vertebraSize: [0.25, 1, 0.01],
   organicDistortion: [0, 1, 0.01],
 };
+
+export const QUALITY_OPTIONS = ['low', 'medium', 'high'];
 
 export const PARAM_LABELS = {
   segments: 'Segments',
@@ -57,6 +62,16 @@ function mutateValue(value, key, amount) {
   return Number(clamped.toFixed(2));
 }
 
+export function getDNAWithDefaults(dna) {
+  return {
+    ...DEFAULT_DNA,
+    ...dna,
+    materialColor: dna.materialColor || DEFAULT_DNA.materialColor,
+    prompt: dna.prompt || '',
+    quality: QUALITY_OPTIONS.includes(dna.quality) ? dna.quality : DEFAULT_DNA.quality,
+  };
+}
+
 export function createRandomDNA() {
   return {
     seed: createSeed(),
@@ -70,16 +85,21 @@ export function createRandomDNA() {
     complexity: Number((0.25 + Math.random() * 0.7).toFixed(2)),
     vertebraSize: Number((0.38 + Math.random() * 0.52).toFixed(2)),
     organicDistortion: Number((0.28 + Math.random() * 0.7).toFixed(2)),
+    materialColor: DEFAULT_DNA.materialColor,
+    prompt: DEFAULT_DNA.prompt,
+    quality: DEFAULT_DNA.quality,
   };
 }
 
 export function mutateDNA(dna, strength = 0.12) {
+  const normalizedDNA = getDNAWithDefaults(dna);
+
   return Object.keys(DNA_LIMITS).reduce(
     (nextDNA, key) => ({
       ...nextDNA,
-      [key]: mutateValue(dna[key], key, strength),
+      [key]: mutateValue(normalizedDNA[key], key, strength),
     }),
-    { ...dna, seed: createSeed() },
+    { ...normalizedDNA, seed: createSeed() },
   );
 }
 
@@ -91,4 +111,44 @@ export function updateDNAValue(dna, key, value) {
     ...dna,
     [key]: clamp(parsed, min, max),
   };
+}
+
+export function updateDNAField(dna, key, value) {
+  if (key === 'quality') {
+    return {
+      ...dna,
+      quality: QUALITY_OPTIONS.includes(value) ? value : DEFAULT_DNA.quality,
+    };
+  }
+
+  return {
+    ...dna,
+    [key]: value,
+  };
+}
+
+export function applyPromptDirection(dna) {
+  const normalizedDNA = getDNAWithDefaults(dna);
+  const prompt = normalizedDNA.prompt.toLowerCase();
+  const nextDNA = { ...normalizedDNA };
+
+  if (prompt.includes('more spikes') || prompt.includes('spiky')) {
+    nextDNA.spikeDensity = clamp(nextDNA.spikeDensity + 0.08, 0, 1);
+  }
+
+  if (prompt.includes('wet') || prompt.includes('glossy')) {
+    nextDNA.wetness = clamp(nextDNA.wetness + 0.08, 0, 1);
+  }
+
+  if (prompt.includes('smooth')) {
+    nextDNA.spikeDensity = clamp(nextDNA.spikeDensity - 0.12, 0, 1);
+    nextDNA.organicDistortion = clamp(nextDNA.organicDistortion - 0.12, 0, 1);
+  }
+
+  if (prompt.includes('aggressive')) {
+    nextDNA.spikeLength = clamp(nextDNA.spikeLength + 0.12, 0, 1);
+    nextDNA.asymmetry = clamp(nextDNA.asymmetry + 0.1, 0, 1);
+  }
+
+  return nextDNA;
 }
