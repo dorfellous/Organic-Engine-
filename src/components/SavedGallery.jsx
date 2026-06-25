@@ -35,6 +35,7 @@ export default function SavedGallery({ savedItems, onRestore, onClear }) {
             >
               <span className="saved-seed">{item.seed}</span>
               <span>{item.segments} segments</span>
+              <span>{item.generatorType || 'auto'} generator</span>
               <span>
                 spikes {item.spikeDensity} / gloss {item.wetness}
               </span>

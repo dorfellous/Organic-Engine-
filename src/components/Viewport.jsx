@@ -1,14 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { generateAlienSpine } from '../generators/spineGenerator.js';
+import { generateOrganicObject, resolveGeneratorType } from '../generators/generatorRouter.js';
+import { disposeSafe } from '../generators/generatorHelpers.js';
 
 export default function Viewport({ dna }) {
   const mountRef = useRef(null);
   const sceneRef = useRef(null);
-  const spineRef = useRef(null);
+  const objectRef = useRef(null);
   const [viewportStatus, setViewportStatus] = useState('initializing');
   const [viewportError, setViewportError] = useState('');
+  const generatorType = resolveGeneratorType(dna);
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -84,8 +86,8 @@ export default function Viewport({ dna }) {
     let frameId = 0;
     const animate = () => {
       controls.update();
-      if (spineRef.current) {
-        spineRef.current.rotation.y += 0.0015;
+      if (objectRef.current) {
+        objectRef.current.rotation.y += 0.0015;
       }
       renderer.render(scene, camera);
       frameId = requestAnimationFrame(animate);
@@ -116,20 +118,18 @@ export default function Viewport({ dna }) {
     }
 
     try {
-      if (spineRef.current) {
-        scene.remove(spineRef.current);
-        spineRef.current.traverse((child) => {
-          if (child.geometry) child.geometry.dispose();
-          if (child.material) child.material.dispose();
-        });
+      if (objectRef.current) {
+        scene.remove(objectRef.current);
+        disposeSafe(objectRef.current);
       }
 
-      const spine = generateAlienSpine(dna);
-      spine.position.set(0, 0, 0);
-      spine.scale.setScalar(0.9);
-      spineRef.current = spine;
-      scene.add(spine);
+      const object = generateOrganicObject(dna);
+      object.position.set(0, 0, 0);
+      object.scale.setScalar(0.9);
+      objectRef.current = object;
+      scene.add(object);
       setViewportError('');
+      setViewportStatus('viewport ready');
     } catch (error) {
       setViewportError(error.message);
       setViewportStatus('error');
@@ -141,12 +141,13 @@ export default function Viewport({ dna }) {
       <div className="viewport-header">
         <div>
           <p>Organic Engine</p>
-          <h1>Procedural alien spine generator</h1>
+          <h1>Procedural organic object generator</h1>
         </div>
         <span>Code generated geometry</span>
       </div>
       <div className="viewport-diagnostics">
         <span>Seed {dna.seed}</span>
+        <span>Type {generatorType}</span>
         <span>{viewportStatus}</span>
         {viewportError && <strong>{viewportError}</strong>}
       </div>

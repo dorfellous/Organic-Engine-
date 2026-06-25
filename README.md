@@ -1,6 +1,6 @@
 # Organic Engine
 
-Organic Engine is a browser-based procedural generative 3D tool for creating organic product-object forms from code. The first generator is an Organic Alien Spine Generator: a black, wet, glossy, spiky, asymmetrical alien spine that can be regenerated, mutated, saved, and restored through deterministic DNA.
+Organic Engine is a browser-based procedural generative 3D tool for creating organic product-object forms from code. It currently includes an Organic Alien Spine Generator plus prompt-routed procedural families for shells, parasites, horns, pods, masks, and neckpiece artifacts. Each form can be regenerated, mutated, saved, and restored through deterministic DNA.
 
 This project is not an AI image generator and not a text-to-3D model. It does not connect to external AI services, paid APIs, Meshy, Tripo, Midjourney, or any other model provider. The forms are generated entirely with procedural geometry, seeded randomness, React, Vite, and Three.js.
 
@@ -18,9 +18,18 @@ npm run dev
 
 Then open the local Vite URL shown in the terminal.
 
-## First Generator
+## Generators
 
-The Organic Alien Spine Generator creates a curved central path, places repeated vertebrae-like segments along it, deforms each segment, and grows irregular curved spikes from the surface. The same DNA object recreates the same result because generation is deterministic from the seed and parameters.
+The spine generator creates a curved central path, places repeated vertebrae-like segments along it, deforms each segment, and grows irregular curved spikes from the surface. The router can also create distinct procedural object families:
+
+- shell: layered exoskeleton plates and ridges
+- parasite: central organism bodies with tendrils and suction-like bumps
+- horn: curved claws, horns, teeth, and ridged bone growths
+- pod: alien eggs, cocoons, capsules, and grooved seed forms
+- mask: abstract face-like wearable artifacts with cavities and panels
+- neckpiece: collar, choker, and jewelry-like organic wearable forms
+
+The same DNA object recreates the same result because generation is deterministic from the seed and parameters.
 
 DNA parameters include:
 
@@ -35,14 +44,15 @@ DNA parameters include:
 - complexity
 - vertebraSize
 - organicDistortion
+- materialColor
+- quality
+- prompt
+- generatorType
 
 The interface supports generating a new DNA, creating a sibling variation, mutating harder, saving variations to localStorage, restoring saved DNA, and copying the current DNA as JSON.
 
 ## Future Ideas
 
-- mask generator
-- parasite generator
-- horn generator
-- wearable artifact generator
 - export image
 - export GLB/STL
+- per-generator export presets

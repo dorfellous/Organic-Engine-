@@ -16,26 +16,62 @@ export const DEFAULT_DNA = {
   materialMetalness: 0.18,
   prompt: 'spiky wet black alien spine, wearable product object, creature-like',
   quality: 'high',
+  generatorType: 'auto',
 };
 
 export const DNA_LIMITS = {
-  segments: [7, 34, 1], curve: [0, 1, 0.01], twist: [0, 1, 0.01], spikeDensity: [0, 1, 0.01], spikeLength: [0, 1, 0.01], asymmetry: [0, 1, 0.01], wetness: [0, 1, 0.01], complexity: [0, 1, 0.01], vertebraSize: [0.25, 1, 0.01], organicDistortion: [0, 1, 0.01],
+  segments: [7, 34, 1],
+  curve: [0, 1, 0.01],
+  twist: [0, 1, 0.01],
+  spikeDensity: [0, 1, 0.01],
+  spikeLength: [0, 1, 0.01],
+  asymmetry: [0, 1, 0.01],
+  wetness: [0, 1, 0.01],
+  complexity: [0, 1, 0.01],
+  vertebraSize: [0.25, 1, 0.01],
+  organicDistortion: [0, 1, 0.01],
 };
 
 export const QUALITY_OPTIONS = ['low', 'medium', 'high'];
+export const GENERATOR_TYPE_OPTIONS = [
+  'auto',
+  'spine',
+  'shell',
+  'parasite',
+  'horn',
+  'pod',
+  'mask',
+  'neckpiece',
+];
 
 export const PARAM_LABELS = {
-  segments: 'Segments', curve: 'Curve', twist: 'Twist', spikeDensity: 'Spike density', spikeLength: 'Spike length', asymmetry: 'Asymmetry', wetness: 'Wetness / gloss', complexity: 'Complexity', vertebraSize: 'Vertebra size', organicDistortion: 'Organic distortion',
+  segments: 'Segments',
+  curve: 'Curve',
+  twist: 'Twist',
+  spikeDensity: 'Spike density',
+  spikeLength: 'Spike length',
+  asymmetry: 'Asymmetry',
+  wetness: 'Wetness / gloss',
+  complexity: 'Complexity',
+  vertebraSize: 'Vertebra size',
+  organicDistortion: 'Organic distortion',
 };
 
-function clamp(value, min, max) { return Math.min(max, Math.max(min, value)); }
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
 
 function mutateValue(value, key, amount) {
   const [min, max, step] = DNA_LIMITS[key];
   const range = max - min;
   const mutated = value + (Math.random() * 2 - 1) * range * amount;
   const clamped = clamp(mutated, min, max);
-  return step === 1 ? Math.round(clamped) : Number(clamped.toFixed(2));
+
+  if (step === 1) {
+    return Math.round(clamped);
+  }
+
+  return Number(clamped.toFixed(2));
 }
 
 export function getDNAWithDefaults(dna) {
@@ -43,9 +79,14 @@ export function getDNAWithDefaults(dna) {
     ...DEFAULT_DNA,
     ...dna,
     materialColor: dna.materialColor || DEFAULT_DNA.materialColor,
-    materialMetalness: Number.isFinite(dna.materialMetalness) ? dna.materialMetalness : DEFAULT_DNA.materialMetalness,
+    materialMetalness: Number.isFinite(dna.materialMetalness)
+      ? dna.materialMetalness
+      : DEFAULT_DNA.materialMetalness,
     prompt: dna.prompt || '',
     quality: QUALITY_OPTIONS.includes(dna.quality) ? dna.quality : DEFAULT_DNA.quality,
+    generatorType: GENERATOR_TYPE_OPTIONS.includes(dna.generatorType)
+      ? dna.generatorType
+      : DEFAULT_DNA.generatorType,
   };
 }
 
@@ -66,21 +107,49 @@ export function createRandomDNA() {
     materialMetalness: DEFAULT_DNA.materialMetalness,
     prompt: DEFAULT_DNA.prompt,
     quality: DEFAULT_DNA.quality,
+    generatorType: DEFAULT_DNA.generatorType,
   };
 }
 
 export function mutateDNA(dna, strength = 0.12) {
   const normalizedDNA = getDNAWithDefaults(dna);
-  return Object.keys(DNA_LIMITS).reduce((nextDNA, key) => ({ ...nextDNA, [key]: mutateValue(normalizedDNA[key], key, strength) }), { ...normalizedDNA, seed: createSeed() });
+
+  return Object.keys(DNA_LIMITS).reduce(
+    (nextDNA, key) => ({
+      ...nextDNA,
+      [key]: mutateValue(normalizedDNA[key], key, strength),
+    }),
+    { ...normalizedDNA, seed: createSeed() },
+  );
 }
 
 export function updateDNAValue(dna, key, value) {
   const [min, max, step] = DNA_LIMITS[key];
   const parsed = step === 1 ? Number.parseInt(value, 10) : Number.parseFloat(value);
-  return { ...dna, [key]: clamp(parsed, min, max) };
+
+  return {
+    ...dna,
+    [key]: clamp(parsed, min, max),
+  };
 }
 
 export function updateDNAField(dna, key, value) {
-  if (key === 'quality') return { ...dna, quality: QUALITY_OPTIONS.includes(value) ? value : DEFAULT_DNA.quality };
-  return { ...dna, [key]: value };
+  if (key === 'quality') {
+    return {
+      ...dna,
+      quality: QUALITY_OPTIONS.includes(value) ? value : DEFAULT_DNA.quality,
+    };
+  }
+
+  if (key === 'generatorType') {
+    return {
+      ...dna,
+      generatorType: GENERATOR_TYPE_OPTIONS.includes(value) ? value : DEFAULT_DNA.generatorType,
+    };
+  }
+
+  return {
+    ...dna,
+    [key]: value,
+  };
 }
