@@ -13,53 +13,29 @@ export const DEFAULT_DNA = {
   vertebraSize: 0.62,
   organicDistortion: 0.68,
   materialColor: '#050505',
+  materialMetalness: 0.18,
   prompt: 'spiky wet black alien spine, wearable product object, creature-like',
   quality: 'high',
 };
 
 export const DNA_LIMITS = {
-  segments: [7, 34, 1],
-  curve: [0, 1, 0.01],
-  twist: [0, 1, 0.01],
-  spikeDensity: [0, 1, 0.01],
-  spikeLength: [0, 1, 0.01],
-  asymmetry: [0, 1, 0.01],
-  wetness: [0, 1, 0.01],
-  complexity: [0, 1, 0.01],
-  vertebraSize: [0.25, 1, 0.01],
-  organicDistortion: [0, 1, 0.01],
+  segments: [7, 34, 1], curve: [0, 1, 0.01], twist: [0, 1, 0.01], spikeDensity: [0, 1, 0.01], spikeLength: [0, 1, 0.01], asymmetry: [0, 1, 0.01], wetness: [0, 1, 0.01], complexity: [0, 1, 0.01], vertebraSize: [0.25, 1, 0.01], organicDistortion: [0, 1, 0.01],
 };
 
 export const QUALITY_OPTIONS = ['low', 'medium', 'high'];
 
 export const PARAM_LABELS = {
-  segments: 'Segments',
-  curve: 'Curve',
-  twist: 'Twist',
-  spikeDensity: 'Spike density',
-  spikeLength: 'Spike length',
-  asymmetry: 'Asymmetry',
-  wetness: 'Wetness / gloss',
-  complexity: 'Complexity',
-  vertebraSize: 'Vertebra size',
-  organicDistortion: 'Organic distortion',
+  segments: 'Segments', curve: 'Curve', twist: 'Twist', spikeDensity: 'Spike density', spikeLength: 'Spike length', asymmetry: 'Asymmetry', wetness: 'Wetness / gloss', complexity: 'Complexity', vertebraSize: 'Vertebra size', organicDistortion: 'Organic distortion',
 };
 
-function clamp(value, min, max) {
-  return Math.min(max, Math.max(min, value));
-}
+function clamp(value, min, max) { return Math.min(max, Math.max(min, value)); }
 
 function mutateValue(value, key, amount) {
   const [min, max, step] = DNA_LIMITS[key];
   const range = max - min;
   const mutated = value + (Math.random() * 2 - 1) * range * amount;
   const clamped = clamp(mutated, min, max);
-
-  if (step === 1) {
-    return Math.round(clamped);
-  }
-
-  return Number(clamped.toFixed(2));
+  return step === 1 ? Math.round(clamped) : Number(clamped.toFixed(2));
 }
 
 export function getDNAWithDefaults(dna) {
@@ -67,6 +43,7 @@ export function getDNAWithDefaults(dna) {
     ...DEFAULT_DNA,
     ...dna,
     materialColor: dna.materialColor || DEFAULT_DNA.materialColor,
+    materialMetalness: Number.isFinite(dna.materialMetalness) ? dna.materialMetalness : DEFAULT_DNA.materialMetalness,
     prompt: dna.prompt || '',
     quality: QUALITY_OPTIONS.includes(dna.quality) ? dna.quality : DEFAULT_DNA.quality,
   };
@@ -86,6 +63,7 @@ export function createRandomDNA() {
     vertebraSize: Number((0.38 + Math.random() * 0.52).toFixed(2)),
     organicDistortion: Number((0.28 + Math.random() * 0.7).toFixed(2)),
     materialColor: DEFAULT_DNA.materialColor,
+    materialMetalness: DEFAULT_DNA.materialMetalness,
     prompt: DEFAULT_DNA.prompt,
     quality: DEFAULT_DNA.quality,
   };
@@ -93,62 +71,16 @@ export function createRandomDNA() {
 
 export function mutateDNA(dna, strength = 0.12) {
   const normalizedDNA = getDNAWithDefaults(dna);
-
-  return Object.keys(DNA_LIMITS).reduce(
-    (nextDNA, key) => ({
-      ...nextDNA,
-      [key]: mutateValue(normalizedDNA[key], key, strength),
-    }),
-    { ...normalizedDNA, seed: createSeed() },
-  );
+  return Object.keys(DNA_LIMITS).reduce((nextDNA, key) => ({ ...nextDNA, [key]: mutateValue(normalizedDNA[key], key, strength) }), { ...normalizedDNA, seed: createSeed() });
 }
 
 export function updateDNAValue(dna, key, value) {
   const [min, max, step] = DNA_LIMITS[key];
   const parsed = step === 1 ? Number.parseInt(value, 10) : Number.parseFloat(value);
-
-  return {
-    ...dna,
-    [key]: clamp(parsed, min, max),
-  };
+  return { ...dna, [key]: clamp(parsed, min, max) };
 }
 
 export function updateDNAField(dna, key, value) {
-  if (key === 'quality') {
-    return {
-      ...dna,
-      quality: QUALITY_OPTIONS.includes(value) ? value : DEFAULT_DNA.quality,
-    };
-  }
-
-  return {
-    ...dna,
-    [key]: value,
-  };
-}
-
-export function applyPromptDirection(dna) {
-  const normalizedDNA = getDNAWithDefaults(dna);
-  const prompt = normalizedDNA.prompt.toLowerCase();
-  const nextDNA = { ...normalizedDNA };
-
-  if (prompt.includes('more spikes') || prompt.includes('spiky')) {
-    nextDNA.spikeDensity = clamp(nextDNA.spikeDensity + 0.08, 0, 1);
-  }
-
-  if (prompt.includes('wet') || prompt.includes('glossy')) {
-    nextDNA.wetness = clamp(nextDNA.wetness + 0.08, 0, 1);
-  }
-
-  if (prompt.includes('smooth')) {
-    nextDNA.spikeDensity = clamp(nextDNA.spikeDensity - 0.12, 0, 1);
-    nextDNA.organicDistortion = clamp(nextDNA.organicDistortion - 0.12, 0, 1);
-  }
-
-  if (prompt.includes('aggressive')) {
-    nextDNA.spikeLength = clamp(nextDNA.spikeLength + 0.12, 0, 1);
-    nextDNA.asymmetry = clamp(nextDNA.asymmetry + 0.1, 0, 1);
-  }
-
-  return nextDNA;
+  if (key === 'quality') return { ...dna, quality: QUALITY_OPTIONS.includes(value) ? value : DEFAULT_DNA.quality };
+  return { ...dna, [key]: value };
 }
