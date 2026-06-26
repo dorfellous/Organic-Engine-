@@ -1,6 +1,6 @@
 # Organic Engine
 
-Organic Engine is a browser-based procedural generative 3D tool for creating organic product-object forms from code. It currently includes an Organic Alien Spine Generator plus prompt-routed procedural families for shells, parasites, horns, pods, masks, and neckpiece artifacts. Each form can be regenerated, mutated, saved, and restored through deterministic DNA.
+Organic Engine is a browser-based procedural generative 3D tool for creating organic product-object forms from code. It uses prompt-routed procedural families, deterministic DNA, and a skeleton + skin geometry system to create sculptural organic forms that can be regenerated, mutated, saved, and restored.
 
 This project is not an AI image generator and not a text-to-3D model. It does not connect to external AI services, paid APIs, Meshy, Tripo, Midjourney, or any other model provider. The forms are generated entirely with procedural geometry, seeded randomness, React, Vite, and Three.js.
 
@@ -18,27 +18,40 @@ npm run dev
 
 Then open the local Vite URL shown in the terminal.
 
-## Generators
+## Generator Families
 
-The spine generator creates a curved central path, places repeated vertebrae-like segments along it, deforms each segment, and grows irregular curved spikes from the surface. The router can also create distinct procedural object families:
+Organic Engine now routes prompts into three deeper procedural engines:
 
-- shell: layered exoskeleton plates and ridges
-- parasite: central organism bodies with tendrils and suction-like bumps
-- horn: curved claws, horns, teeth, and ridged bone growths
-- pod: alien eggs, cocoons, capsules, and grooved seed forms
-- mask: abstract face-like wearable artifacts with cavities and panels
-- neckpiece: collar, choker, and jewelry-like organic wearable forms
+- Artifact / Wearable: masks, collars, jewelry-like objects, product forms, polished panels, and openings
+- Organism / Parasite: soft bodies, tendrils, suction bumps, pores, asymmetry, and wet biological surfaces
+- Exoskeleton / Bone: shell, horn, spine, armor, carapace, ridges, plates, and sharp skeletal growths
+
+Legacy generator names still load safely:
+
+- spine, shell, horn -> Exoskeleton / Bone
+- parasite, pod -> Organism / Parasite
+- mask, neckpiece -> Artifact / Wearable
 
 The same DNA object recreates the same result because generation is deterministic from the seed and parameters.
 
-## Detail System
+## Geometry Architecture
 
-Organic Engine uses local procedural systems for layered noise deformation, curved spike growth, ridge lines, cavities, tendrils, secondary growths, and macro silhouette scaling. The Quality control changes geometry resolution and detail amount:
+The newer generator architecture is built around a continuous skeleton + skin system:
 
-- Low
-- Medium
+- procedural central curve
+- deterministic secondary branches
+- merged variable-radius tube skin
+- seeded organic vertex deformation
+- smooth normals
+- sculptural ridges, folds, cavities, plates, pores, and curved talons
+
+The goal is to avoid simple primitive assemblies and move toward continuous macro shape, meso structure, and micro surface detail.
+
+The Quality control changes geometry resolution and detail amount:
+
+- Preview
 - High
-- Ultra
+- Ultra (slower)
 
 Shape presets provide fast starting points:
 
@@ -64,6 +77,11 @@ DNA parameters include:
 - complexity
 - vertebraSize
 - organicDistortion
+- macroIntensity
+- mesoDetail
+- microDetail
+- branching
+- surfaceNoise
 - scale
 - width
 - height
@@ -75,6 +93,7 @@ DNA parameters include:
 - symmetry
 - openingAmount
 - materialColor
+- materialMetalness
 - quality
 - prompt
 - referenceNotes

@@ -2,39 +2,75 @@ import { getDNAWithDefaults } from './mutateDNA.js';
 
 export const GENERATOR_RULES = [
   {
-    type: 'spine',
-    label: 'spine',
-    words: ['spine', 'vertebrae', 'backbone', 'חוליות', 'עמוד שדרה', 'שדרה'],
+    type: 'artifact',
+    label: 'artifact',
+    words: [
+      'wearable',
+      'mask',
+      'jewelry',
+      'collar',
+      'necklace',
+      'choker',
+      'product',
+      'artifact',
+      'headpiece',
+      'מסכה',
+      'תכשיט',
+      'צוואר',
+      'קולר',
+      'לביש',
+      'שרשרת',
+    ],
   },
   {
-    type: 'shell',
-    label: 'shell',
-    words: ['shell', 'exoskeleton', 'carapace', 'armor', 'insect shell', 'שריון', 'קונכייה', 'חרק', 'אקסוסקלטון'],
+    type: 'organism',
+    label: 'organism',
+    words: [
+      'parasite',
+      'organism',
+      'tendrils',
+      'tentacles',
+      'soft body',
+      'flesh',
+      'slimy',
+      'creature',
+      'egg',
+      'pod',
+      'cocoon',
+      'טפיל',
+      'אורגניזם',
+      'זרועות',
+      'מחושים',
+      'בשר',
+      'רך',
+      'חייתי',
+    ],
   },
   {
-    type: 'parasite',
-    label: 'parasite',
-    words: ['parasite', 'organism', 'tendrils', 'tentacles', 'creature', 'טפיל', 'זרועות', 'מחושים', 'אורגניזם'],
-  },
-  {
-    type: 'horn',
-    label: 'horn',
-    words: ['horn', 'claw', 'tooth', 'bone', 'talon', 'קרן', 'טופר', 'שן', 'עצם'],
-  },
-  {
-    type: 'pod',
-    label: 'pod',
-    words: ['egg', 'pod', 'cocoon', 'seed', 'capsule', 'ביצה', 'גולם', 'קפסולה', 'זרע'],
-  },
-  {
-    type: 'mask',
-    label: 'mask',
-    words: ['mask', 'face', 'helmet', 'headpiece', 'מסכה', 'פנים', 'קסדה', 'הדפיס'],
-  },
-  {
-    type: 'neckpiece',
-    label: 'neckpiece',
-    words: ['neckpiece', 'collar', 'necklace', 'choker', 'jewelry', 'צוואר', 'קולר', 'שרשרת', 'תכשיט'],
+    type: 'exoskeleton',
+    label: 'exoskeleton',
+    words: [
+      'bone',
+      'shell',
+      'horn',
+      'spine',
+      'vertebrae',
+      'exoskeleton',
+      'armor',
+      'carapace',
+      'claw',
+      'tooth',
+      'talon',
+      'insect',
+      'עצם',
+      'שלד',
+      'קרן',
+      'שדרה',
+      'שריון',
+      'חרקי',
+      'טופר',
+      'שן',
+    ],
   },
 ];
 
@@ -48,6 +84,7 @@ const PROMPT_RULES = [
       ...dna,
       segments: clampInt(dna.segments + 6 * strength, 7, 34),
       curve: clamp01(dna.curve + 0.12 * strength),
+      macroIntensity: clamp01(dna.macroIntensity + 0.08 * strength),
     }),
   },
   {
@@ -75,6 +112,7 @@ const PROMPT_RULES = [
       ...dna,
       vertebraSize: clampRange(dna.vertebraSize + 0.16 * strength, 0.25, 1),
       complexity: clamp01(dna.complexity + 0.12 * strength),
+      macroIntensity: clamp01(dna.macroIntensity + 0.14 * strength),
     }),
   },
   {
@@ -84,6 +122,7 @@ const PROMPT_RULES = [
       ...dna,
       spikeDensity: clamp01(dna.spikeDensity + 0.2 * strength),
       spikeLength: clamp01(dna.spikeLength + 0.18 * strength),
+      mesoDetail: clamp01(dna.mesoDetail + 0.12 * strength),
     }),
   },
   {
@@ -95,6 +134,8 @@ const PROMPT_RULES = [
       spikeLength: clamp01(dna.spikeLength - 0.16 * strength),
       organicDistortion: clamp01(dna.organicDistortion - 0.18 * strength),
       complexity: clamp01(dna.complexity - 0.08 * strength),
+      surfaceNoise: clamp01(dna.surfaceNoise - 0.18 * strength),
+      microDetail: clamp01(dna.microDetail - 0.12 * strength),
     }),
   },
   {
@@ -106,6 +147,36 @@ const PROMPT_RULES = [
       asymmetry: clamp01(dna.asymmetry + 0.16 * strength),
       twist: clamp01(dna.twist + 0.12 * strength),
       complexity: clamp01(dna.complexity + 0.12 * strength),
+      branching: clamp01(dna.branching + 0.12 * strength),
+    }),
+  },
+  {
+    tag: 'openings',
+    words: ['opening', 'openings', 'holes', 'cavity', 'cavities', 'pores', 'פתחים', 'חורים', 'נקבוביות'],
+    apply: (dna, strength) => ({
+      ...dna,
+      openingAmount: clamp01(dna.openingAmount + 0.22 * strength),
+      mesoDetail: clamp01(dna.mesoDetail + 0.08 * strength),
+    }),
+  },
+  {
+    tag: 'tendrils',
+    words: ['tendrils', 'tentacles', 'appendages', 'זרועות', 'מחושים'],
+    apply: (dna, strength) => ({
+      ...dna,
+      branching: clamp01(dna.branching + 0.26 * strength),
+      asymmetry: clamp01(dna.asymmetry + 0.12 * strength),
+      spikeDensity: clamp01(dna.spikeDensity - 0.08 * strength),
+    }),
+  },
+  {
+    tag: 'panels',
+    words: ['panel', 'panels', 'plates', 'layered', 'פאנלים', 'שכבות'],
+    apply: (dna, strength) => ({
+      ...dna,
+      mesoDetail: clamp01(dna.mesoDetail + 0.18 * strength),
+      symmetry: clamp01(dna.symmetry + 0.08 * strength),
+      smoothness: clamp01(dna.smoothness + 0.06 * strength),
     }),
   },
   {
@@ -179,6 +250,8 @@ const PROMPT_RULES = [
       ...dna,
       organicDistortion: clamp01(dna.organicDistortion + 0.18 * strength),
       asymmetry: clamp01(dna.asymmetry + 0.12 * strength),
+      surfaceNoise: clamp01(dna.surfaceNoise + 0.14 * strength),
+      microDetail: clamp01(dna.microDetail + 0.08 * strength),
     }),
   },
   {
@@ -190,6 +263,8 @@ const PROMPT_RULES = [
       twist: clamp01(dna.twist + 0.14 * strength),
       complexity: clamp01(dna.complexity + 0.12 * strength),
       spikeDensity: clamp01(dna.spikeDensity + 0.1 * strength),
+      branching: clamp01(dna.branching + 0.1 * strength),
+      mesoDetail: clamp01(dna.mesoDetail + 0.1 * strength),
     }),
   },
   {
@@ -200,6 +275,7 @@ const PROMPT_RULES = [
       complexity: clamp01(dna.complexity + 0.16 * strength),
       vertebraSize: clampRange(dna.vertebraSize + 0.1 * strength, 0.25, 1),
       twist: clamp01(dna.twist + 0.08 * strength),
+      mesoDetail: clamp01(dna.mesoDetail + 0.18 * strength),
     }),
   },
   {
@@ -210,6 +286,8 @@ const PROMPT_RULES = [
       asymmetry: clamp01(dna.asymmetry - 0.08 * strength),
       organicDistortion: clamp01(dna.organicDistortion - 0.07 * strength),
       complexity: clamp01(dna.complexity + 0.06 * strength),
+      symmetry: clamp01(dna.symmetry + 0.12 * strength),
+      smoothness: clamp01(dna.smoothness + 0.1 * strength),
     }),
   },
   {
@@ -244,6 +322,8 @@ const PROMPT_RULES = [
       ...dna,
       complexity: clamp01(dna.complexity + 0.2 * strength),
       organicDistortion: clamp01(dna.organicDistortion + 0.12 * strength),
+      mesoDetail: clamp01(dna.mesoDetail + 0.14 * strength),
+      microDetail: clamp01(dna.microDetail + 0.14 * strength),
     }),
   },
   {
@@ -254,6 +334,8 @@ const PROMPT_RULES = [
       complexity: clamp01(dna.complexity - 0.18 * strength),
       spikeDensity: clamp01(dna.spikeDensity - 0.14 * strength),
       organicDistortion: clamp01(dna.organicDistortion - 0.14 * strength),
+      mesoDetail: clamp01(dna.mesoDetail - 0.12 * strength),
+      microDetail: clamp01(dna.microDetail - 0.12 * strength),
     }),
   },
 ];
@@ -342,7 +424,7 @@ export function detectGeneratorType(prompt, fallback = 'spine') {
 export function analyzePrompt(prompt, dna = {}) {
   const tags = detectPromptTags(prompt);
   const baseDNA = getDNAWithDefaults(dna);
-  const detectedGeneratorType = detectGeneratorType(prompt, 'spine');
+  const detectedGeneratorType = detectGeneratorType(prompt, 'exoskeleton');
   const isManual = baseDNA.generatorType && baseDNA.generatorType !== 'auto';
   const generatorType = isManual ? baseDNA.generatorType : detectedGeneratorType;
 
@@ -386,6 +468,11 @@ function cleanDNA(dna) {
     vertebraSize: round(clampRange(dna.vertebraSize, 0.25, 1)),
     organicDistortion: round(clamp01(dna.organicDistortion)),
     materialMetalness: round(clamp01(dna.materialMetalness)),
+    macroIntensity: round(clamp01(dna.macroIntensity)),
+    mesoDetail: round(clamp01(dna.mesoDetail)),
+    microDetail: round(clamp01(dna.microDetail)),
+    branching: round(clamp01(dna.branching)),
+    surfaceNoise: round(clamp01(dna.surfaceNoise)),
     generatorType: dna.generatorType,
   };
 }

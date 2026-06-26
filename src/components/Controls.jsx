@@ -66,7 +66,7 @@ export default function Controls({
         <div className="detected-tags">
           <span>Detected</span>
           <p>
-            Generator: {promptAnalysis.generatorType} ({promptAnalysis.generatorSource})
+            Family: {promptAnalysis.generatorType} ({promptAnalysis.generatorSource})
           </p>
           <p>
             Material:{' '}
@@ -86,15 +86,21 @@ export default function Controls({
       <details className="control-section" open>
         <summary>Generator</summary>
         <label className="select-field">
-          <span>Generator Type</span>
+          <span>Family</span>
           <select
             value={dna.generatorType}
-            aria-label="Generator Type"
+            aria-label="Family"
             onChange={(event) => onFieldChange('generatorType', event.target.value)}
           >
             {GENERATOR_TYPE_OPTIONS.map((type) => (
               <option key={type} value={type}>
-                {type === 'auto' ? 'Auto from prompt' : type[0].toUpperCase() + type.slice(1)}
+                {type === 'auto'
+                  ? 'Auto from prompt'
+                  : type === 'artifact'
+                    ? 'Artifact / Wearable'
+                    : type === 'organism'
+                      ? 'Organism / Parasite'
+                      : 'Exoskeleton / Bone'}
               </option>
             ))}
           </select>
@@ -151,7 +157,7 @@ export default function Controls({
           >
             {QUALITY_OPTIONS.map((quality) => (
               <option key={quality} value={quality}>
-                {quality[0].toUpperCase() + quality.slice(1)}
+                {quality === 'preview' ? 'Preview' : quality === 'ultra' ? 'Ultra (slower)' : 'High'}
               </option>
             ))}
           </select>

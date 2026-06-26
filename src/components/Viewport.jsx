@@ -147,7 +147,7 @@ export default function Viewport({ dna }) {
       </div>
       <div className="viewport-diagnostics">
         <span>Seed {dna.seed}</span>
-        <span>Type {generatorType}</span>
+        <span>Family {generatorType}</span>
         <span>{viewportStatus}</span>
         {viewportError && <strong>{viewportError}</strong>}
       </div>
