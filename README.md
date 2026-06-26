@@ -31,6 +31,26 @@ The spine generator creates a curved central path, places repeated vertebrae-lik
 
 The same DNA object recreates the same result because generation is deterministic from the seed and parameters.
 
+## Detail System
+
+Organic Engine uses local procedural systems for layered noise deformation, curved spike growth, ridge lines, cavities, tendrils, secondary growths, and macro silhouette scaling. The Quality control changes geometry resolution and detail amount:
+
+- Low
+- Medium
+- High
+- Ultra
+
+Shape presets provide fast starting points:
+
+- Wet Alien
+- Bone Artifact
+- Insect Armor
+- Parasite Soft Body
+- Minimal Wearable
+- Aggressive Spiked
+- Smooth Pod
+- Ritual Mask
+
 DNA parameters include:
 
 - seed
@@ -44,15 +64,27 @@ DNA parameters include:
 - complexity
 - vertebraSize
 - organicDistortion
+- scale
+- width
+- height
+- thickness
+- silhouetteDrama
+- detailDensity
+- smoothness
+- chaos
+- symmetry
+- openingAmount
 - materialColor
 - quality
 - prompt
+- referenceNotes
 - generatorType
 
-The interface supports generating a new DNA, creating a sibling variation, mutating harder, saving variations to localStorage, restoring saved DNA, and copying the current DNA as JSON.
+The interface supports generating a new DNA, creating a sibling variation, mutating harder, applying presets, saving variations to localStorage, restoring saved DNA, and copying the current DNA as JSON.
 
 ## Future Ideas
 
 - export image
 - export GLB/STL
 - per-generator export presets
+- local-only image reference upload

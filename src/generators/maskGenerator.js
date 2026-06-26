@@ -1,31 +1,34 @@
 import * as THREE from 'three';
 import { randomBetween, randomSign } from './seededRandom.js';
+import { addCavities, addGroupedSpikes, addRidgeLines, addSecondaryGrowths } from './detailSystems.js';
 import { addEdgeSpikes, deformGeometry, setupGenerator } from './generatorHelpers.js';
+import { familyScale } from './geometryUtils.js';
 
 export function generateMask(dna) {
   const { dna: effectiveDNA, random, material, quality } = setupGenerator(dna, 'mask');
   const group = new THREE.Group();
-  const panelCount = 4 + Math.round(effectiveDNA.complexity * 5);
+  const panelCount = 4 + Math.round(effectiveDNA.detailDensity * 6);
   const edgePoints = [];
 
   for (let index = 0; index < panelCount; index += 1) {
     const progress = panelCount <= 1 ? 0 : index / (panelCount - 1);
     const side = index % 2 === 0 ? -1 : 1;
-    const y = 1.55 - progress * 3.25;
+    const y = (1.55 - progress * 3.25) * (0.82 + effectiveDNA.height * 0.42);
     const geometry = new THREE.SphereGeometry(
       randomBetween(random, 0.46, 0.82) * effectiveDNA.vertebraSize,
       quality.sphereW,
       quality.sphereH,
     );
     geometry.scale(
-      randomBetween(random, 0.55, 0.95),
+      randomBetween(random, 0.46, 1.05) * (0.72 + effectiveDNA.width * 0.66),
       randomBetween(random, 0.5, 1.0),
-      randomBetween(random, 0.1, 0.22),
+      randomBetween(random, 0.08, 0.28) * (0.75 + effectiveDNA.thickness),
     );
     deformGeometry(geometry, random, effectiveDNA, 0.14);
 
     const panel = new THREE.Mesh(geometry, material);
-    panel.position.set(side * randomBetween(random, 0.24, 0.55) * (1 - progress * 0.32), y, 0);
+    const symmetryBlend = 1 - effectiveDNA.symmetry * 0.35;
+    panel.position.set(side * randomBetween(random, 0.22, 0.62) * (1 - progress * 0.32) * symmetryBlend, y, randomBetween(random, -0.06, 0.08));
     panel.rotation.set(randomBetween(random, -0.24, 0.24), side * 0.22, side * randomBetween(random, 0.08, 0.32));
     group.add(panel);
     edgePoints.push(new THREE.Vector3(panel.position.x + side * 0.42, y, 0.1));
@@ -76,6 +79,23 @@ export function generateMask(dna) {
   }
 
   addEdgeSpikes(group, random, effectiveDNA, material, quality, edgePoints, 0.65);
+  addGroupedSpikes(group, random, effectiveDNA, material, quality, edgePoints, {
+    density: effectiveDNA.spikeDensity * 0.35,
+    lengthScale: 0.35,
+  });
+  addSecondaryGrowths(group, random, effectiveDNA, material, quality, edgePoints, {
+    count: Math.round(edgePoints.length * effectiveDNA.detailDensity * 0.65),
+  });
+  addRidgeLines(group, random, effectiveDNA, material, quality, {
+    count: 2 + Math.round(effectiveDNA.detailDensity * 5),
+    radius: 0.9,
+    length: 2.8,
+  });
+  addCavities(group, random, effectiveDNA, material, {
+    count: Math.round(effectiveDNA.openingAmount * 3),
+    radius: 0.8,
+  });
   group.rotation.set(0.04, -0.28, randomSign(random) * 0.04);
+  familyScale(group, effectiveDNA, { width: 0.2, height: 0.35, thickness: 0.12 });
   return group;
 }

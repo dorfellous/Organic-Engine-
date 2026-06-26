@@ -7,6 +7,7 @@ import {
   createRandomDNA,
   mutateDNA,
   getDNAWithDefaults,
+  applyPresetToDNA,
   updateDNAField,
   updateDNAValue,
 } from '../generators/mutateDNA.js';
@@ -25,9 +26,20 @@ const DNA_KEYS = [
   'complexity',
   'vertebraSize',
   'organicDistortion',
+  'scale',
+  'width',
+  'height',
+  'thickness',
+  'silhouetteDrama',
+  'detailDensity',
+  'smoothness',
+  'chaos',
+  'symmetry',
+  'openingAmount',
   'materialColor',
   'materialMetalness',
   'prompt',
+  'referenceNotes',
   'quality',
   'generatorType',
 ];
@@ -96,7 +108,7 @@ export default function App() {
   }, [savedItems]);
 
   const dnaJSON = useMemo(() => JSON.stringify(dna, null, 2), [dna]);
-  const promptAnalysis = useMemo(() => analyzePrompt(dna.prompt, dna), [dna]);
+  const promptAnalysis = useMemo(() => analyzePrompt(`${dna.prompt} ${dna.referenceNotes}`, dna), [dna]);
 
   function handleChange(key, value) {
     setDNA((currentDNA) => updateDNAValue(currentDNA, key, value));
@@ -107,7 +119,13 @@ export default function App() {
   }
 
   function handleApplyPrompt() {
-    setDNA((currentDNA) => interpretPromptToDNA(currentDNA.prompt, currentDNA, 'apply'));
+    setDNA((currentDNA) =>
+      interpretPromptToDNA(`${currentDNA.prompt} ${currentDNA.referenceNotes}`, currentDNA, 'apply'),
+    );
+  }
+
+  function handleApplyPreset(presetId) {
+    setDNA((currentDNA) => applyPresetToDNA(currentDNA, presetId));
   }
 
   function handleGenerateNew() {
@@ -115,18 +133,19 @@ export default function App() {
       const nextDNA = {
         ...createRandomDNA(),
         prompt: currentDNA.prompt,
+        referenceNotes: currentDNA.referenceNotes,
         quality: currentDNA.quality,
         generatorType: currentDNA.generatorType,
       };
 
-      return interpretPromptToDNA(currentDNA.prompt, nextDNA, 'new');
+      return interpretPromptToDNA(`${currentDNA.prompt} ${currentDNA.referenceNotes}`, nextDNA, 'new');
     });
   }
 
   function handlePromptMutation(strength, mode) {
     setDNA((currentDNA) => {
       const mutatedDNA = mutateDNA(currentDNA, strength);
-      return interpretPromptToDNA(mutatedDNA.prompt, mutatedDNA, mode);
+      return interpretPromptToDNA(`${mutatedDNA.prompt} ${mutatedDNA.referenceNotes}`, mutatedDNA, mode);
     });
   }
 
@@ -145,27 +164,30 @@ export default function App() {
 
   return (
     <main className="app-shell">
-      <Controls
-        dna={dna}
-        promptAnalysis={promptAnalysis}
-        onChange={handleChange}
-        onFieldChange={handleFieldChange}
-        onApplyPrompt={handleApplyPrompt}
-        onGenerateNew={handleGenerateNew}
-        onMutateSoft={() => handlePromptMutation(0.08, 'soft')}
-        onMutateHard={() => handlePromptMutation(0.24, 'hard')}
-        onSave={handleSave}
-        onCopy={handleCopy}
-        copyStatus={copyStatus}
-      />
       <AppErrorBoundary>
         <Viewport dna={dna} />
       </AppErrorBoundary>
-      <SavedGallery
-        savedItems={savedItems}
-        onRestore={(item) => setDNA(sanitizeDNA(item))}
-        onClear={() => setSavedItems([])}
-      />
+      <aside className="right-workbench">
+        <Controls
+          dna={dna}
+          promptAnalysis={promptAnalysis}
+          onChange={handleChange}
+          onFieldChange={handleFieldChange}
+          onApplyPrompt={handleApplyPrompt}
+          onApplyPreset={handleApplyPreset}
+          onGenerateNew={handleGenerateNew}
+          onMutateSoft={() => handlePromptMutation(0.08, 'soft')}
+          onMutateHard={() => handlePromptMutation(0.24, 'hard')}
+          onSave={handleSave}
+          onCopy={handleCopy}
+          copyStatus={copyStatus}
+        />
+        <SavedGallery
+          savedItems={savedItems}
+          onRestore={(item) => setDNA(sanitizeDNA(item))}
+          onClear={() => setSavedItems([])}
+        />
+      </aside>
     </main>
   );
 }

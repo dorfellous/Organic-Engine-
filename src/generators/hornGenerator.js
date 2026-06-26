@@ -1,15 +1,18 @@
 import * as THREE from 'three';
 import { randomBetween, randomSign } from './seededRandom.js';
+import { addGroupedSpikes, addRidgeLines } from './detailSystems.js';
 import { createCurvedSpike, deformGeometry, setupGenerator } from './generatorHelpers.js';
+import { familyScale } from './geometryUtils.js';
 
 export function generateHorn(dna) {
   const { dna: effectiveDNA, random, material, quality } = setupGenerator(dna, 'horn');
   const group = new THREE.Group();
-  const hornCount = 1 + Math.round(effectiveDNA.complexity * 2.2);
+  const hornCount = 1 + Math.round(effectiveDNA.complexity * 1.6 + effectiveDNA.silhouetteDrama * 1.2);
+  const ridgeAnchors = [];
 
   for (let index = 0; index < hornCount; index += 1) {
     const offset = (index - (hornCount - 1) / 2) * randomBetween(random, 0.45, 0.85);
-    const length = randomBetween(random, 3.2, 5.6) * (0.75 + effectiveDNA.vertebraSize);
+    const length = randomBetween(random, 3.2, 5.9) * (0.65 + effectiveDNA.vertebraSize) * (0.72 + effectiveDNA.height * 0.72);
     const bend = (0.45 + effectiveDNA.curve * 1.4) * randomSign(random);
     const points = [
       new THREE.Vector3(offset, -1.7, 0),
@@ -21,7 +24,7 @@ export function generateHorn(dna) {
     const geometry = new THREE.TubeGeometry(
       curve,
       quality.path + 14,
-      randomBetween(random, 0.19, 0.34) * effectiveDNA.vertebraSize,
+      randomBetween(random, 0.16, 0.35) * effectiveDNA.vertebraSize * (0.7 + effectiveDNA.thickness),
       quality.radial + 6,
       false,
     );
@@ -37,8 +40,9 @@ export function generateHorn(dna) {
     deformGeometry(geometry, random, effectiveDNA, 0.1);
     const horn = new THREE.Mesh(geometry, material);
     group.add(horn);
+    ridgeAnchors.push(...curve.getPoints(10));
 
-    const ridgeCount = 8 + Math.round(effectiveDNA.complexity * 14);
+    const ridgeCount = 8 + Math.round(effectiveDNA.detailDensity * 18);
     for (let ridgeIndex = 0; ridgeIndex < ridgeCount; ridgeIndex += 1) {
       const t = ridgeIndex / ridgeCount;
       const point = curve.getPoint(t);
@@ -53,7 +57,7 @@ export function generateHorn(dna) {
       );
       torus.position.copy(point);
       torus.rotation.set(Math.PI / 2 + t * effectiveDNA.twist, randomBetween(random, -0.5, 0.5), 0);
-      torus.scale.x = randomBetween(random, 0.65, 1.15);
+      torus.scale.x = randomBetween(random, 0.55, 1.25) * (0.8 + effectiveDNA.width * 0.45);
       torus.scale.y = randomBetween(random, 0.55, 0.95);
       group.add(torus);
     }
@@ -71,6 +75,17 @@ export function generateHorn(dna) {
     }
   }
 
+  addGroupedSpikes(group, random, effectiveDNA, material, quality, ridgeAnchors, {
+    density: effectiveDNA.spikeDensity * 0.25,
+    lengthScale: 0.38,
+  });
+  addRidgeLines(group, random, effectiveDNA, material, quality, {
+    count: Math.round(effectiveDNA.detailDensity * 5),
+    radius: 1.4,
+    length: 4,
+    thickness: 0.018,
+  });
   group.rotation.set(0.05, -0.35, -0.14);
+  familyScale(group, effectiveDNA, { width: 0.15, height: 0.35, thickness: 0.3 });
   return group;
 }

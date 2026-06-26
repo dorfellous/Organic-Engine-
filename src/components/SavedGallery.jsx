@@ -10,11 +10,8 @@ export default function SavedGallery({ savedItems, onRestore, onClear }) {
   }
 
   return (
-    <aside className="panel gallery-panel">
-      <div className="panel-header">
-        <p>Local gallery</p>
-        <strong>Saved variations</strong>
-      </div>
+    <details className="control-section gallery-panel">
+      <summary>Saved Variations</summary>
 
       {savedItems.length > 0 && (
         <button className="clear-button" type="button" onClick={onClear}>
@@ -48,6 +45,6 @@ export default function SavedGallery({ savedItems, onRestore, onClear }) {
           ))
         )}
       </div>
-    </aside>
+    </details>
   );
 }

@@ -25,7 +25,7 @@ export function resolveGeneratorType(dna) {
     return GENERATORS[effectiveDNA.generatorType] ? effectiveDNA.generatorType : 'spine';
   }
 
-  return detectGeneratorType(effectiveDNA.prompt, 'spine');
+  return detectGeneratorType(`${effectiveDNA.prompt} ${effectiveDNA.referenceNotes}`, 'spine');
 }
 
 export function generateOrganicObject(dna) {

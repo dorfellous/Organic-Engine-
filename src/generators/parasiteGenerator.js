@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { randomBetween, randomSign } from './seededRandom.js';
+import { addCavities, addSecondaryGrowths, addTendrils } from './detailSystems.js';
 import { deformGeometry, setupGenerator } from './generatorHelpers.js';
+import { familyScale } from './geometryUtils.js';
 
 export function generateParasite(dna) {
   const { dna: effectiveDNA, random, material, quality } = setupGenerator(dna, 'parasite');
@@ -10,14 +12,19 @@ export function generateParasite(dna) {
     quality.sphereW,
     quality.sphereH,
   );
-  bodyGeometry.scale(1.18, 0.82 + effectiveDNA.complexity * 0.28, 0.72);
-  deformGeometry(bodyGeometry, random, effectiveDNA, 0.28);
+  bodyGeometry.scale(
+    1 + effectiveDNA.width * 0.7,
+    0.7 + effectiveDNA.height * 0.55 + effectiveDNA.complexity * 0.2,
+    0.52 + effectiveDNA.thickness * 0.75,
+  );
+  deformGeometry(bodyGeometry, random, effectiveDNA, 0.38);
 
   const body = new THREE.Mesh(bodyGeometry, material);
   body.rotation.set(0.24, -0.22, 0.18);
   group.add(body);
 
-  const tendrilCount = 5 + Math.round(effectiveDNA.segments * 0.28 + effectiveDNA.complexity * 8);
+  const anchors = [];
+  const tendrilCount = 5 + Math.round(effectiveDNA.segments * 0.22 + effectiveDNA.detailDensity * 10);
   for (let index = 0; index < tendrilCount; index += 1) {
     const angle = (index / tendrilCount) * Math.PI * 2 + randomBetween(random, -0.25, 0.25);
     const side = new THREE.Vector3(Math.cos(angle), randomBetween(random, -0.2, 0.35), Math.sin(angle));
@@ -34,8 +41,9 @@ export function generateParasite(dna) {
     );
     deformGeometry(tendril.geometry, random, effectiveDNA, 0.08);
     group.add(tendril);
+    anchors.push(side.clone().multiplyScalar(0.95));
 
-    const bumpCount = 2 + Math.round(effectiveDNA.complexity * 4);
+    const bumpCount = 2 + Math.round(effectiveDNA.detailDensity * 5);
     for (let bumpIndex = 0; bumpIndex < bumpCount; bumpIndex += 1) {
       const point = path.getPoint(randomBetween(random, 0.18, 0.88));
       const bumpGeometry = new THREE.SphereGeometry(randomBetween(random, 0.08, 0.18), quality.radial + 4, quality.radial);
@@ -47,7 +55,7 @@ export function generateParasite(dna) {
     }
   }
 
-  const nodeCount = 8 + Math.round(effectiveDNA.complexity * 12);
+  const nodeCount = 6 + Math.round(effectiveDNA.detailDensity * 18);
   for (let index = 0; index < nodeCount; index += 1) {
     const direction = new THREE.Vector3(
       randomBetween(random, -1, 1),
@@ -63,6 +71,17 @@ export function generateParasite(dna) {
     group.add(node);
   }
 
+  addTendrils(group, random, effectiveDNA, material, quality, anchors, {
+    count: Math.round(3 + effectiveDNA.chaos * 8 + effectiveDNA.detailDensity * 5),
+  });
+  addSecondaryGrowths(group, random, effectiveDNA, material, quality, anchors, {
+    count: Math.round(6 + effectiveDNA.detailDensity * 12),
+  });
+  addCavities(group, random, effectiveDNA, material, {
+    count: Math.round(effectiveDNA.openingAmount * 7),
+    radius: 1.1 + effectiveDNA.width * 0.6,
+  });
   group.rotation.y = -0.35;
+  familyScale(group, effectiveDNA, { width: 0.25, height: 0.1, thickness: 0.35 });
   return group;
 }

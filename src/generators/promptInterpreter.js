@@ -315,11 +315,28 @@ export function detectGeneratorType(prompt, fallback = 'spine') {
     return fallback;
   }
 
-  const match = GENERATOR_RULES.find((rule) =>
-    rule.words.some((word) => matchesWord(normalizedPrompt, word)),
-  );
+  const scoredMatches = GENERATOR_RULES.map((rule) => {
+    const score = rule.words.reduce((total, word) => {
+      if (!matchesWord(normalizedPrompt, word)) {
+        return total;
+      }
 
-  return match?.type || fallback;
+      const escapedWord = escapeRegExp(word.toLowerCase());
+      const morePattern = new RegExp(`more\\s+(?:like\\s+)?[^,.]{0,24}${escapedWord}`);
+      const lessPattern = new RegExp(`less\\s+(?:like\\s+)?[^,.]{0,24}${escapedWord}`);
+
+      if (lessPattern.test(normalizedPrompt)) {
+        return total - 2;
+      }
+
+      return total + (morePattern.test(normalizedPrompt) ? 3 : 1);
+    }, 0);
+
+    return { type: rule.type, score };
+  }).filter((match) => match.score > 0);
+
+  scoredMatches.sort((first, second) => second.score - first.score);
+  return scoredMatches[0]?.type || fallback;
 }
 
 export function analyzePrompt(prompt, dna = {}) {
@@ -341,7 +358,7 @@ export function analyzePrompt(prompt, dna = {}) {
 export function interpretPromptToDNA(prompt, currentDNA, mode = 'apply') {
   const normalizedPrompt = normalizePrompt(prompt);
   const strength = MODE_STRENGTH[mode] || MODE_STRENGTH.apply;
-  const baseDNA = getDNAWithDefaults({ ...currentDNA, prompt: prompt || currentDNA.prompt || '' });
+  const baseDNA = getDNAWithDefaults(currentDNA);
 
   if (!normalizedPrompt.trim()) {
     return baseDNA;

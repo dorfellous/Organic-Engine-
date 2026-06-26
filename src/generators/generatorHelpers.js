@@ -1,12 +1,14 @@
 import * as THREE from 'three';
 import { createSeededRandom, randomBetween, randomSign } from './seededRandom.js';
 import { getDNAWithDefaults } from './mutateDNA.js';
+import { organicDeformGeometry } from './organicNoise.js';
 import { createWetBlackMaterial } from '../materials/wetBlackMaterial.js';
 
 export const FAMILY_QUALITY = {
   low: { path: 14, radial: 10, sphereW: 24, sphereH: 16 },
   medium: { path: 22, radial: 14, sphereW: 36, sphereH: 22 },
-  high: { path: 30, radial: 18, sphereW: 48, sphereH: 28 },
+  high: { path: 34, radial: 22, sphereW: 58, sphereH: 34 },
+  ultra: { path: 46, radial: 28, sphereW: 76, sphereH: 44 },
 };
 
 export function setupGenerator(dna, family) {
@@ -24,28 +26,14 @@ export function setupGenerator(dna, family) {
 }
 
 export function deformGeometry(geometry, random, dna, amount = 0.18) {
-  const position = geometry.attributes.position;
-  const vertex = new THREE.Vector3();
-  const distortion = dna.organicDistortion * amount;
-
-  for (let index = 0; index < position.count; index += 1) {
-    vertex.fromBufferAttribute(position, index);
-    const wave =
-      Math.sin(vertex.x * 3.1 + vertex.y * 1.7) * 0.04 +
-      Math.cos(vertex.z * 4.2 - vertex.y * 1.1) * 0.035;
-
-    vertex.x += vertex.x * wave + randomBetween(random, -distortion, distortion) * 0.18;
-    vertex.y += randomBetween(random, -distortion, distortion) * 0.2;
-    vertex.z += vertex.z * -wave + randomBetween(random, -distortion, distortion) * 0.18;
-    position.setXYZ(index, vertex.x, vertex.y, vertex.z);
-  }
-
-  position.needsUpdate = true;
-  geometry.computeVertexNormals();
+  organicDeformGeometry(geometry, random, dna, {
+    amount: amount * (0.75 + dna.detailDensity * 0.55),
+    preserveSilhouette: 0.28 + dna.smoothness * 0.22,
+  });
 }
 
 export function createCurvedSpike(random, dna, quality, lengthScale = 1) {
-  const length = randomBetween(random, 0.35, 1.35) * dna.spikeLength * lengthScale;
+  const length = randomBetween(random, 0.28, 1.55) * dna.spikeLength * lengthScale * (0.7 + dna.silhouetteDrama * 0.55);
   const base = randomBetween(random, 0.035, 0.11) * (1 + dna.vertebraSize * 0.7);
   const bend = randomBetween(random, 0.08, 0.36) * (1 + dna.asymmetry);
   const path = new THREE.CatmullRomCurve3([
